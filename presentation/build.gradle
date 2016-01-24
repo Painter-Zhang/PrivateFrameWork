@@ -1,0 +1,54 @@
+apply plugin: 'com.android.application'
+apply plugin: 'com.neenbedankt.android-apt'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.2"
+
+    defaultConfig {
+        applicationId "com.peiyuan.rxandretro"
+        minSdkVersion 14
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    packagingOptions{
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+//    testCompile 'junit:junit:4.12'
+//    compile 'com.android.support:appcompat-v7:23.1.1'
+    compile 'com.android.support:design:23.1.1'
+
+    //RxView
+    compile 'com.jakewharton.rxbinding:rxbinding:0.3.0'                 //RxBinding  Platform
+
+    //图片
+    compile 'com.github.bumptech.glide:glide:3.6.1'                     //Picture
+
+    //视图注入
+    compile 'com.jakewharton:butterknife:7.0.1'
+//    apt 'com.jakewharton:butterknife-compiler:7.0.1'
+
+    //依赖注入
+    apt 'com.google.dagger:dagger-compiler:2.0'
+    compile 'com.google.dagger:dagger:2.0'
+    provided 'org.glassfish:javax.annotation:10.0-b28'
+
+    //日志
+    compile 'com.github.orhanobut:logger:1.12'
+
+    //依赖数据&业务模块
+    compile project(':model')
+}
