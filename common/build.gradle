@@ -27,4 +27,7 @@ dependencies {
     compile 'de.greenrobot:eventbus:2.4.0'
     //GreenRobot Common
     compile 'de.greenrobot:java-common:2.3.0'
+
+    //日志
+    compile 'com.github.orhanobut:logger:1.12'
 }

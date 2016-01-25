@@ -6,6 +6,7 @@ import android.content.Context;
 import com.orhanobut.logger.AndroidLogTool;
 import com.orhanobut.logger.LogLevel;
 import com.orhanobut.logger.Logger;
+import com.peiyuan.model.env.ModelContext;
 import com.peiyuan.rxandretro.component.ApplicationComponent;
 import com.peiyuan.rxandretro.component.DaggerApplicationComponent;
 import com.peiyuan.rxandretro.module.ApplicationModule;
@@ -29,12 +30,23 @@ public class RxApplication extends Application{
                 .applicationModule(new ApplicationModule(this))
                 .build();
 
-        Logger.init("RxAndRetro")                 // default PRETTYLOGGER or use just init()
+        Logger.init("RxAndRetro")               // default PRETTYLOGGER or use just init()
                 .methodCount(2)                 // default 2
                 .hideThreadInfo()               // default shown
                 .logLevel(LogLevel.FULL)        // default LogLevel.FULL
                 .methodOffset(0)                // default 0
                 .logTool(new AndroidLogTool()); // custom log tool, optional
+
+        initProjectLibrary(getApplicationContext());
+
+    }
+
+    /**
+     * 初始化依赖项目
+     * @param applicationContext
+     */
+    private void initProjectLibrary(Context applicationContext) {
+        ModelContext.init(applicationContext);
     }
 
     public ApplicationComponent getApplicationComponent(){
