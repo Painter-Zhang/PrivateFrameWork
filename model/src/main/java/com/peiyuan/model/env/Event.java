@@ -6,16 +6,27 @@ package com.peiyuan.model.env;
 public class Event {
 
     /**
-     * 请求之前的检查,异常事件
+     * 请求前异常事件
      */
-    public static class BeforeRequestErrorEvent{
+    public static class BeforeRequestErrorEvent {
 
     }
 
+
     /**
-     * 请求之后的检查,服务器返回错误处理
+     * 请求后Http异常事件
      */
-    public static class HandleHttpErrorEvent{
+    public static class HandleHttpErrorEvent {
+
+        private int code;
+
+        public HandleHttpErrorEvent(int code) {
+            this.code = code;
+        }
+
+        public int getCode() {
+            return code;
+        }
 
     }
 

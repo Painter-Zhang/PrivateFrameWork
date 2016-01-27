@@ -2,10 +2,14 @@ package com.peiyuan.model.env;
 
 import android.content.Context;
 
+import com.peiyuan.model.api.NetInterceptor;
+
 import de.greenrobot.event.EventBus;
+import timber.log.Timber;
 
 /**
- * Created by hexun on 2016/1/27.
+ * Created by Painter-Zhang on 2016/1/27.
+ * 事件处理或发送中心. 需要UI层作反应的会发给UI层处理,UI层也会有事件接收处理中心
  */
 public class EventProcessCenter {
 
@@ -28,8 +32,22 @@ public class EventProcessCenter {
         return center;
     }
 
-    public void onEventMainThread(){
+    /**
+     * 处理请求之前的事件
+     * @param event
+     */
+    public void onEventMainThread(Event.BeforeRequestErrorEvent event){
 
+    }
+
+    /**
+     * 处理Http异常的事件
+     * @param event
+     */
+    public void onEventMainThread(Event.HandleHttpErrorEvent event){
+        int code = event.getCode();
+        String errorInfo = NetInterceptor.codeMapping.get(code);
+        Timber.e(errorInfo);
     }
 
 }

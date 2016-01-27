@@ -1,8 +1,12 @@
 package com.peiyuan.model.api;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.peiyuan.model.entity.ArticleListEntity;
 
-import okhttp3.ResponseBody;
+import io.realm.RealmObject;
 import retrofit2.Call;
 import retrofit2.GsonConverterFactory;
 import retrofit2.Retrofit;
@@ -24,10 +28,23 @@ public class NetApi {
 
     private NetApi() {
 
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.addDeserializationExclusionStrategy(new ExclusionStrategy() {
+            @Override
+            public boolean shouldSkipField(FieldAttributes f) {
+                return f.getDeclaringClass().equals(RealmObject.class);
+            }
+
+            @Override
+            public boolean shouldSkipClass(Class<?> clazz) {
+                return false;
+            }
+        });
+
         //配置Retrofit
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(NetApiService.HOST)
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(gsonBuilder.create()))
                 .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .client(NetConfig.prepareClient())
                 .build();
@@ -52,7 +69,7 @@ public class NetApi {
         return netApiService.getHomeArticle(maxID, minID, limit, ishome).subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread());
     }
 
-    public Call<ResponseBody> getArticleDetail(@Path("id") long id) {
+    public Call<ArticleListEntity> getArticleDetail(@Path("id") long id) {
         return netApiService.getArticleDetail(id);//.subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread());
     }
 

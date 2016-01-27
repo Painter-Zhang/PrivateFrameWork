@@ -1,9 +1,13 @@
 package com.peiyuan.model.api;
 
 
+import com.peiyuan.model.env.Event;
+
 import java.io.IOException;
 import java.util.HashMap;
 
+import de.greenrobot.event.EventBus;
+import okhttp3.Connection;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -14,7 +18,7 @@ import timber.log.Timber;
  */
 public class NetInterceptor implements Interceptor {
 
-    private static HashMap<Integer, String> codeMapping;
+    public static HashMap<Integer, String> codeMapping;
 
     static {
         codeMapping = new HashMap<Integer, String>();
@@ -52,7 +56,7 @@ public class NetInterceptor implements Interceptor {
         Request newRequest = chain.request().newBuilder().addHeader("User-Agent", "Retrofit-Sample-App").addHeader("deviceId", "1091").build();
         long startTime = System.currentTimeMillis();
         Timber.i("start_request url:%s", newRequest.url().toString());
-
+        Connection connection = chain.connection();
         Response response = chain.proceed(newRequest);
         if (response!=null && response.code()==200){
             Timber.i("response code: %d 耗时: %d毫秒",response.code(),System.currentTimeMillis()-startTime);
@@ -66,7 +70,7 @@ public class NetInterceptor implements Interceptor {
      * 请求之前的检查
      */
     private void beforeRequestCheck() {
-
+        EventBus.getDefault().post(new Event.BeforeRequestErrorEvent());
     }
 
     /**
@@ -74,6 +78,6 @@ public class NetInterceptor implements Interceptor {
      * @param code
      */
     private void handleHttpError(int code) {
-
+        EventBus.getDefault().post(new Event.HandleHttpErrorEvent(code));
     }
 }

@@ -2,8 +2,8 @@ package com.peiyuan.model.api;
 
 
 import com.google.gson.JsonObject;
+import com.peiyuan.model.entity.ArticleListEntity;
 
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
@@ -22,5 +22,5 @@ public interface NetApiService {
 
 
     @GET("/cq/financearticle/{id}")
-    Call<ResponseBody> getArticleDetail(@Path("id") long id);
+    Call<ArticleListEntity> getArticleDetail(@Path("id") long id);
 }
