@@ -12,7 +12,10 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.Toast;
 
+import com.google.gson.JsonObject;
 import com.jakewharton.rxbinding.view.RxView;
 import com.peiyuan.model.api.NetApi;
 import com.peiyuan.rxandretro.R;
@@ -21,13 +24,18 @@ import com.peiyuan.rxandretro.component.DaggerActivityComponent;
 import com.peiyuan.rxandretro.module.ActivityModule;
 import com.peiyuan.rxandretro.ui.base.BaseActivity;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
 import rx.functions.Action1;
+import timber.log.Timber;
 
 
 public class MainActivity extends BaseActivity {
@@ -121,7 +129,23 @@ public class MainActivity extends BaseActivity {
                 Snackbar.make(rootLayout, "有何吩咐?", Snackbar.LENGTH_SHORT).setAction("UNDO", new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        Call<ResponseBody> call = netApiService.getArticleDetail(191);
+                        call.enqueue(new Callback<ResponseBody>() {
 
+                            @Override
+                            public void onResponse(retrofit2.Response<ResponseBody> response) {
+                                try {
+                                    Toast.makeText(MainActivity.this,response.body().string().toString(),Toast.LENGTH_SHORT).show();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Throwable t) {
+                                Toast.makeText(MainActivity.this,t.toString(),Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
                 }).show();
             }

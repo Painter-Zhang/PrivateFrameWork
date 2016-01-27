@@ -12,10 +12,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-/**
- * Created by zhjchen on 15/12/24.
- */
-public class SharePreferenceUtils {
+public class SharePreferenceManager {
 
     
     private static final String OBJECT_KEY = "OBJECT_KEY";

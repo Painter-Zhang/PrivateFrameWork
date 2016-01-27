@@ -1,6 +1,6 @@
 package com.peiyuan.model.api;
 
-import android.util.Log;
+import android.support.annotation.NonNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -13,6 +13,7 @@ import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import timber.log.Timber;
 
 /**
  * Created by Administrator on 2016/1/17 0017.
@@ -26,36 +27,42 @@ public class NetConfig {
     private NetConfig() {
 
         //请求拦截器
-        Interceptor interceptor = new Interceptor() {
-            @Override
-            public okhttp3.Response intercept(Chain chain) throws IOException {
-                Request newRequest = chain.request().newBuilder().addHeader("User-Agent", "Retrofit-Sample-App").addHeader("deviceId", "1091").build();
-                long startTime = System.currentTimeMillis();
-                Log.d("start_request", newRequest.url().toString());
-                Response response = chain.proceed(newRequest);
-                if (response!=null && response.code()==200){
-                    Log.d("response",response.code()+""+"耗时:" + (System.currentTimeMillis()-startTime)/1000.0 + "秒");
-                }
-                return response;
-            }
-        };
+        Interceptor interceptor = getInterceptor();
 
         //Cookie
-        CookieJar cookieJar = new CookieJar() {
-            @Override
-            public void saveFromResponse(HttpUrl url, List<Cookie> cookies) {
-                savedCookies = cookies;
-            }
-
-            @Override
-            public List<Cookie> loadForRequest(HttpUrl url) {
-                return savedCookies;
-            }
-        };
+        CookieJar cookieJar = getCookieJar();
 
         //创建请求client
         client = new OkHttpClient.Builder().addInterceptor(interceptor).cookieJar(cookieJar).build();
 
+    }
+
+    /**
+     * 获取cookie管理
+     * @return
+     */
+    @NonNull
+    private CookieJar getCookieJar() {
+        return new CookieJar() {
+                @Override
+                public void saveFromResponse(HttpUrl url, List<Cookie> cookies) {
+                    savedCookies = cookies;
+                }
+
+                @Override
+                public List<Cookie> loadForRequest(HttpUrl url) {
+                    return savedCookies;
+                }
+            };
+    }
+
+    /**
+     * 获取请求拦截器
+     * @return
+     */
+    @NonNull
+    private Interceptor getInterceptor() {
+        return new NetInterceptor();
     }
 
     public static OkHttpClient prepareClient() {

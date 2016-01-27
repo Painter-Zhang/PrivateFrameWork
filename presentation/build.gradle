@@ -7,7 +7,7 @@ android {
 
     defaultConfig {
         applicationId "com.peiyuan.rxandretro"
-        minSdkVersion 14
+        minSdkVersion 15
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -46,6 +46,9 @@ dependencies {
     apt 'com.google.dagger:dagger-compiler:2.0'
     compile 'com.google.dagger:dagger:2.0'
     provided 'org.glassfish:javax.annotation:10.0-b28'
+
+    //字体
+    compile 'uk.co.chrisjenx:calligraphy:2.1.0'
 
     //依赖数据&业务模块
     compile project(':model')

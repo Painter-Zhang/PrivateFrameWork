@@ -1,6 +1,5 @@
 package com.peiyuan.model.db;
 
-import com.orhanobut.logger.Logger;
 
 import io.realm.RealmChangeListener;
 
@@ -12,7 +11,7 @@ public class RmChangeListener implements RealmChangeListener {
     private static RmChangeListener listener;
 
     private RmChangeListener(){
-        Logger.d("RealM 改变了");
+
     }
 
     @Override
