@@ -32,4 +32,7 @@ dependencies {
 //    compile 'com.github.orhanobut:logger:1.12'
     compile 'com.jakewharton.timber:timber:4.1.0'
 
+    //内存检查
+    compile 'com.squareup.leakcanary:leakcanary-android:1.4-beta1' // or 1.4-beta1
+
 }

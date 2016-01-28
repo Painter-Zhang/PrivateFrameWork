@@ -16,6 +16,11 @@ import android.widget.Toast;
 
 import com.jakewharton.rxbinding.view.RxView;
 import com.peiyuan.model.api.NetApi;
+import com.peiyuan.model.db.greendao.DaoMaster;
+import com.peiyuan.model.db.greendao.DaoSession;
+import com.peiyuan.model.db.greendao.Note;
+import com.peiyuan.model.db.greendao.NoteDao;
+import com.peiyuan.model.db.table.ArticleTable;
 import com.peiyuan.model.entity.ArticleListEntity;
 import com.peiyuan.rxandretro.R;
 import com.peiyuan.rxandretro.component.ApplicationComponent;
@@ -23,22 +28,31 @@ import com.peiyuan.rxandretro.component.DaggerActivityComponent;
 import com.peiyuan.rxandretro.module.ActivityModule;
 import com.peiyuan.rxandretro.ui.base.BaseActivity;
 
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import io.realm.Realm;
 import retrofit2.Call;
 import retrofit2.Callback;
+import rx.Observable;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
-
+import rx.schedulers.Schedulers;
+import timber.log.Timber;
 
 public class MainActivity extends BaseActivity {
 
 
     @Inject
     NetApi netApiService;
+
+    @Inject
+    Realm realm;
 
     @Bind(R.id.fabBtn)
     FloatingActionButton fabBtn;
@@ -69,6 +83,31 @@ public class MainActivity extends BaseActivity {
         tabLayout.addTab(tabLayout.newTab().setText("Tab 2"));
         tabLayout.addTab(tabLayout.newTab().setText("Tab 3"));
         tabLayout.addTab(tabLayout.newTab().setText("Tab 4"));
+
+        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, "GreenDB", null);
+        DaoMaster daoMaster = new DaoMaster(helper.getWritableDatabase());
+        DaoSession session = daoMaster.newSession();
+        final NoteDao noteDao = session.getNoteDao();
+
+        Observable.create(new Observable.OnSubscribe<NoteDao>() {
+            @Override
+            public void call(Subscriber<? super NoteDao> subscriber) {
+                Note note = new Note();
+                note.setId((long) 10086);
+                note.setComment("hahaha");
+                note.setDate(new Date());
+                note.setText("wawawa");
+                noteDao.insertOrReplace(note);
+                subscriber.onNext(noteDao);
+            }
+
+        }).subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<NoteDao>() {
+            @Override
+            public void call(NoteDao noteDao) {
+                Timber.d("给力");
+            }
+        });
+
 
         initListener();
 //        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -129,9 +168,16 @@ public class MainActivity extends BaseActivity {
                         call.enqueue(new Callback<ArticleListEntity>() {
 
                             @Override
-                            public void onResponse(retrofit2.Response<ArticleListEntity> response) {
+                            public void onResponse(final retrofit2.Response<ArticleListEntity> response) {
                                 try {
                                     Toast.makeText(MainActivity.this,response.body().getArticles().get(0).getContent(),Toast.LENGTH_SHORT).show();
+                                    realm.beginTransaction();
+                                    ArticleTable articleTable = new ArticleTable();
+                                    articleTable.set_id(10010);
+                                    articleTable.setCommentCount(100);
+                                    articleTable.setBrief("国安是冠军");
+                                    realm.copyToRealmOrUpdate(articleTable);
+                                    realm.commitTransaction();
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
@@ -191,5 +237,11 @@ public class MainActivity extends BaseActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        realm.close();
+        super.onDestroy();
     }
 }

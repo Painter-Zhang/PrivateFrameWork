@@ -9,6 +9,7 @@ import com.peiyuan.model.env.ModelContext;
 import com.peiyuan.rxandretro.component.ApplicationComponent;
 import com.peiyuan.rxandretro.component.DaggerApplicationComponent;
 import com.peiyuan.rxandretro.module.ApplicationModule;
+import com.squareup.leakcanary.LeakCanary;
 
 /**
  * Created by Administrator on 2016/1/23 0023.
@@ -32,6 +33,7 @@ public class RxApplication extends Application {
                     .applicationModule(new ApplicationModule(this))
                     .build();
             initProjectLibrary(getApplicationContext());
+            LeakCanary.install(this);
             Stetho.initializeWithDefaults(this);
         }
     }
