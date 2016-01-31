@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.jakewharton.rxbinding.view.RxView;
+import com.peiyuan.common.util.ViewServer;
 import com.peiyuan.model.api.NetApi;
 import com.peiyuan.model.db.greendao.DaoMaster;
 import com.peiyuan.model.db.greendao.DaoSession;
@@ -73,7 +74,7 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
-
+        ViewServer.get(this).addWindow(this);
         drawerToggle = new ActionBarDrawerToggle(MainActivity.this, drawerLayout, R.string.app_name, R.string.app_name);
         drawerLayout.setDrawerListener(drawerToggle);
         getSupportActionBar().setHomeButtonEnabled(true);
@@ -152,6 +153,12 @@ public class MainActivity extends BaseActivity {
 //                Toast.makeText(MainActivity.this,s.toString(),Toast.LENGTH_SHORT).show();
 //            }
 //        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ViewServer.get(this).setFocusedWindow(this);
     }
 
     /**
@@ -242,6 +249,7 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         realm.close();
+        ViewServer.get(this).removeWindow(this);
         super.onDestroy();
     }
 }
