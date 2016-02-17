@@ -35,4 +35,6 @@ dependencies {
     //内存检查
     compile 'com.squareup.leakcanary:leakcanary-android:1.4-beta1' // or 1.4-beta1
 
+    //底层异步处理库Bolts
+    compile 'com.parse.bolts:bolts-tasks:1.4.0'
 }

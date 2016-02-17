@@ -29,16 +29,24 @@ import com.peiyuan.rxandretro.component.DaggerActivityComponent;
 import com.peiyuan.rxandretro.module.ActivityModule;
 import com.peiyuan.rxandretro.ui.base.BaseActivity;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
+import bolts.Continuation;
+import bolts.Task;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.realm.Realm;
+import io.realm.annotations.PrimaryKey;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.Response;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -105,7 +113,7 @@ public class MainActivity extends BaseActivity {
         }).subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<NoteDao>() {
             @Override
             public void call(NoteDao noteDao) {
-                Timber.d("给力");
+                Timber.d("已经存储");
             }
         });
 
@@ -153,6 +161,63 @@ public class MainActivity extends BaseActivity {
 //                Toast.makeText(MainActivity.this,s.toString(),Toast.LENGTH_SHORT).show();
 //            }
 //        });
+        Task.callInBackground(new Callable<List<Task<Response<ArticleListEntity>>>>() {
+            @Override
+            public List<Task<Response<ArticleListEntity>>> call() throws Exception {
+                List<Task<Response<ArticleListEntity>>> tasks = new ArrayList<>();
+                tasks.add(getFirstAsync());
+                tasks.add(getSecondAsync());
+                Task.whenAny(tasks).waitForCompletion();
+                return tasks;
+            }
+        }).continueWith(new Continuation<List<Task<Response<ArticleListEntity>>>, Void>() {
+            @Override
+            public Void then(Task<List<Task<Response<ArticleListEntity>>>> task) throws Exception {
+                List<Task<Response<ArticleListEntity>>> tasks = task.getResult();
+
+                for (Task<Response<ArticleListEntity>> t : tasks) {
+                    if (t.isCompleted()) {
+                        Timber.d(t.getResult().body().getArticles().get(0).getContent());
+                    }else{
+                        Timber.d(""+t.isCancelled());
+                    }
+                }
+                return null;
+            }
+        },Task.UI_THREAD_EXECUTOR);
+    }
+
+    private Task<Response<ArticleListEntity>> getFirstAsync(){
+
+        return Task.delay(3000).continueWith(new Continuation<Void, Response<ArticleListEntity>>() {
+            @Override
+            public Response then(Task<Void> task) throws Exception {
+                Call<ArticleListEntity> call = netApiService.getArticleDetail(191);
+                Response<ArticleListEntity> response = call.execute();
+                return response;
+            }
+        });
+    }
+
+    private Task<Response<ArticleListEntity>> getSecondAsync(){
+        return Task.callInBackground(new Callable<Response<ArticleListEntity>>() {
+            @Override
+            public Response call() throws Exception {
+                Call<ArticleListEntity> call = netApiService.getArticleDetail(191);
+                Response<ArticleListEntity> response = call.execute();
+                return response;
+            }
+        });
+    }
+
+    private Task<Void> getThirdAsync(){
+        return Task.callInBackground(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                Timber.d("一个很nice的3");
+                return null;
+            }
+        });
     }
 
     @Override
