@@ -1,7 +1,9 @@
 package com.peiyuan.rxandretro.ui.activity;
 
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -9,12 +11,17 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.jakewharton.rxbinding.view.RxView;
+import com.peiyuan.common.util.HookUtils;
 import com.peiyuan.common.util.ViewServer;
 import com.peiyuan.model.api.NetApi;
 import com.peiyuan.model.db.greendao.DaoMaster;
@@ -28,6 +35,7 @@ import com.peiyuan.rxandretro.component.ApplicationComponent;
 import com.peiyuan.rxandretro.component.DaggerActivityComponent;
 import com.peiyuan.rxandretro.module.ActivityModule;
 import com.peiyuan.rxandretro.ui.base.BaseActivity;
+import com.peiyuan.rxandretro.ui.view.PopKeyboard;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,8 +50,6 @@ import bolts.Task;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.realm.Realm;
-import io.realm.annotations.PrimaryKey;
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -73,12 +79,21 @@ public class MainActivity extends BaseActivity {
     DrawerLayout drawerLayout;
     @Bind(R.id.tabLayout)
     TabLayout tabLayout;
+    @Bind(R.id.start_page)
+    Button startPage;
+    @Bind(R.id.collapsingToolbarLayout)
+    CollapsingToolbarLayout collapsingToolbarLayout;
+    @Bind(R.id.edit_text)
+    EditText editText;
+
+    private PopKeyboard pkb;
 
     private ActionBarDrawerToggle drawerToggle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        HookUtils.hookStartActivity();
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
@@ -168,26 +183,26 @@ public class MainActivity extends BaseActivity {
                 tasks.add(getFirstAsync());
                 tasks.add(getSecondAsync());
                 Task.whenAny(tasks).waitForCompletion();
+                //Task.whenAll(tasks).waitForCompletion();
                 return tasks;
             }
         }).continueWith(new Continuation<List<Task<Response<ArticleListEntity>>>, Void>() {
             @Override
             public Void then(Task<List<Task<Response<ArticleListEntity>>>> task) throws Exception {
                 List<Task<Response<ArticleListEntity>>> tasks = task.getResult();
-
                 for (Task<Response<ArticleListEntity>> t : tasks) {
                     if (t.isCompleted()) {
                         Timber.d(t.getResult().body().getArticles().get(0).getContent());
-                    }else{
-                        Timber.d(""+t.isCancelled());
+                    } else {
+                        Timber.d("" + t.isCancelled());
                     }
                 }
                 return null;
             }
-        },Task.UI_THREAD_EXECUTOR);
+        }, Task.UI_THREAD_EXECUTOR);
     }
 
-    private Task<Response<ArticleListEntity>> getFirstAsync(){
+    private Task<Response<ArticleListEntity>> getFirstAsync() {
 
         return Task.delay(3000).continueWith(new Continuation<Void, Response<ArticleListEntity>>() {
             @Override
@@ -199,7 +214,7 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-    private Task<Response<ArticleListEntity>> getSecondAsync(){
+    private Task<Response<ArticleListEntity>> getSecondAsync() {
         return Task.callInBackground(new Callable<Response<ArticleListEntity>>() {
             @Override
             public Response call() throws Exception {
@@ -210,7 +225,7 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-    private Task<Void> getThirdAsync(){
+    private Task<Void> getThirdAsync() {
         return Task.callInBackground(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
@@ -240,9 +255,9 @@ public class MainActivity extends BaseActivity {
                         call.enqueue(new Callback<ArticleListEntity>() {
 
                             @Override
-                            public void onResponse(final retrofit2.Response<ArticleListEntity> response) {
+                            public void onResponse(final Response<ArticleListEntity> response) {
                                 try {
-                                    Toast.makeText(MainActivity.this,response.body().getArticles().get(0).getContent(),Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(MainActivity.this, response.body().getArticles().get(0).getContent(), Toast.LENGTH_SHORT).show();
                                     realm.beginTransaction();
                                     ArticleTable articleTable = new ArticleTable();
                                     articleTable.set_id(10010);
@@ -250,6 +265,8 @@ public class MainActivity extends BaseActivity {
                                     articleTable.setBrief("国安是冠军");
                                     realm.copyToRealmOrUpdate(articleTable);
                                     realm.commitTransaction();
+
+
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
@@ -257,13 +274,44 @@ public class MainActivity extends BaseActivity {
 
                             @Override
                             public void onFailure(Throwable t) {
-                                Toast.makeText(MainActivity.this,t.toString(),Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MainActivity.this, t.toString(), Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
                 }).show();
             }
         });
+
+        RxView.clicks(startPage).subscribe(new Subscriber<Void>() {
+            @Override
+            public void onCompleted() {
+
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onNext(Void aVoid) {
+                Intent intent = new Intent(MainActivity.this, MaterialTestActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getApplicationContext().startActivity(intent);
+            }
+        });
+
+        pkb = new PopKeyboard(this,editText);
+
+        editText.setInputType(InputType.TYPE_NULL);
+        editText.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                pkb.show(view);
+                return false;
+            }
+        });
+
     }
 
     @Override
